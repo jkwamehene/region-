@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Region — VCMIS</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0a1f44;--blue:#1a56db;--blue2:#1e40af;--cyan:#0ea5e9;
+  --bg:#f8fafc;--white:#ffffff;--border:#e2e8f0;--border2:#cbd5e1;
+  --text:#0f172a;--text2:#334155;--muted:#64748b;--dim:#94a3b8;
+  --green:#059669;--green-lt:#ecfdf5;--green-dk:#065f46;
+  --red:#dc2626;--red-lt:#fef2f2;--red-dk:#991b1b;
+  --amber:#d97706;--amber-lt:#fffbeb;--amber-dk:#92400e;
+  --r:8px;--r-lg:12px;--r-xl:18px;
+  --sh:0 1px 3px rgba(0,0,0,.06),0 1px 8px rgba(0,0,0,.04);
+  --sh-lg:0 4px 20px rgba(0,0,0,.08);
+  --sh-xl:0 8px 36px rgba(0,0,0,.10);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── Topbar ── */
+.topbar{background:#fff;height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;border-bottom:1px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,.04);position:sticky;top:0;z-index:50}
+.tb-brand{display:flex;align-items:center;gap:10px}
+.tb-logo{width:32px;height:32px;border-radius:8px;background:#f8fafc;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px}
+.tb-name{font-size:14px;font-weight:600;color:var(--text);letter-spacing:-.01em}
+.tb-name span{color:var(--muted);font-weight:400}
+.tb-nav{display:flex;align-items:center;gap:2px}
+.tb-nav a{font-size:13px;font-weight:500;color:var(--muted);text-decoration:none;padding:6px 12px;border-radius:var(--r);transition:all .15s}
+.tb-nav a:hover{background:#f1f5f9;color:var(--text)}
+.tb-nav a.active{background:#f1f5f9;color:var(--text)}
+.tb-right{display:flex;align-items:center;gap:12px}
+.tb-sep{width:1px;height:20px;background:var(--border)}
+.tb-user{display:flex;align-items:center;gap:8px;color:var(--text2);font-size:13px;cursor:pointer}
+.tb-avatar{width:30px;height:30px;border-radius:50%;background:#e2e8f0;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--text2)}
+
+/* ── Page header ── */
+.hero{background:#fff;padding:20px 0 0;border-bottom:1px solid var(--border)}
+.hero-inner{max-width:960px;margin:0 auto;padding:0 20px 20px}
+.breadcrumb{display:flex;align-items:center;gap:5px;font-size:12px;margin-bottom:10px;flex-wrap:wrap}
+.breadcrumb a{color:var(--muted);text-decoration:none;transition:color .15s}
+.breadcrumb a:hover{color:var(--blue)}
+.breadcrumb .sep{color:var(--border2)}
+.breadcrumb .cur{color:var(--text2);font-weight:500}
+.hero-row{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.hero h1{font-size:clamp(18px,3vw,22px);font-weight:700;color:var(--text);letter-spacing:-.02em;margin-bottom:4px}
+.hero p{font-size:13px;color:var(--muted);line-height:1.55;max-width:520px}
+.hero-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.hero-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;background:#f1f5f9;border:1px solid var(--border);font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.03em}
+
+/* ── Layout ── */
+.wrap{max-width:960px;margin:0 auto;padding:24px 20px 80px}
+
+/* ── Stat cards ── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+@media(max-width:600px){.stats{grid-template-columns:1fr 1fr}}
+.scard{background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px 16px;box-shadow:var(--sh);border-left:3px solid transparent}
+.scard.blue{border-left-color:var(--blue)}
+.scard.green{border-left-color:var(--green)}
+.scard.amber{border-left-color:var(--amber)}
+.scard.slate{border-left-color:#94a3b8}
+.scard-lbl{font-size:10px;color:var(--muted);margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.scard-val{font-size:24px;font-weight:700;color:var(--text)}
+.scard.green .scard-val{color:var(--green-dk)}
+.scard.amber .scard-val{color:var(--amber-dk)}
+.scard.slate .scard-val{color:var(--muted)}
+
+/* ── Main card ── */
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--sh-xl);overflow:hidden}
+.card-body{padding:20px 24px 24px}
+
+/* ── Toolbar ── */
+.toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+.card-title{font-size:15px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px}
+.tb-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.search-wrap{display:flex;align-items:center;border:1.5px solid var(--border2);border-radius:var(--r);overflow:hidden;background:var(--white);transition:border-color .2s}
+.search-wrap:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,86,219,.08)}
+.search-wrap svg{margin:0 8px;color:var(--dim);flex-shrink:0}
+.search-wrap input{border:none;outline:none;background:transparent;padding:8px 8px 8px 0;font-size:13px;color:var(--text);width:200px;font-family:'Inter',sans-serif}
+.search-wrap input::placeholder{color:var(--dim)}
+.fsel{border:1.5px solid var(--border2);border-radius:var(--r);padding:8px 10px;font-size:12px;font-weight:500;background:var(--white);color:var(--text2);outline:none;font-family:'Inter',sans-serif;cursor:pointer;transition:border-color .2s}
+.fsel:focus{border-color:var(--blue)}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--r);border:1.5px solid var(--border2);background:var(--white);font-size:13px;font-weight:600;cursor:pointer;color:var(--text2);font-family:'Inter',sans-serif;transition:all .15s;white-space:nowrap}
+.btn:hover{border-color:var(--blue);color:var(--blue);background:#eff6ff}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff;box-shadow:0 3px 10px rgba(26,86,219,.25)}
+.btn.primary:hover{background:var(--blue2);transform:translateY(-1px);box-shadow:0 5px 16px rgba(26,86,219,.35)}
+.btn.primary:active{transform:none}
+.btn.danger{background:var(--red-dk);border-color:var(--red-dk);color:#fff}
+.btn.danger:hover{background:#7f1d1d}
+.btn.secondary{color:var(--muted)}
+.btn.icon-only{padding:8px 10px}
+
+/* ── Table ── */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:560px}
+thead th{text-align:left;padding:10px 12px;border-bottom:1.5px solid var(--border);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);background:#f8fafc;white-space:nowrap}
+td{padding:12px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f8faff}
+tr.hl td{background:#fffbeb!important;transition:background 1s}
+.tid{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--blue);background:#eff6ff;padding:2px 7px;border-radius:5px;border:1px solid #bfdbfe;display:inline-block}
+.tid.country{color:#7c3aed;background:#f5f3ff;border-color:#ddd6fe}
+.tname{font-weight:600;color:var(--text)}
+.tsub{font-size:11px;color:var(--dim);margin-top:2px}
+.tpill{display:inline-flex;padding:1px 8px;border-radius:6px;font-size:11px;font-weight:600;background:#f1f5f9;color:var(--muted);border:1px solid var(--border)}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge::before{content:'';width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.badge.active{background:var(--green-lt);color:var(--green-dk)}
+.badge.active::before{background:var(--green)}
+.badge.inactive{background:#f1f5f9;color:#475569}
+.badge.inactive::before{background:var(--dim)}
+.row-info{font-size:11px;color:var(--dim);margin-top:12px}
+
+/* ── Action buttons ── */
+.act-btns{display:flex;gap:5px}
+.act-btn{width:30px;height:30px;border-radius:var(--r);border:1.5px solid var(--border2);background:var(--white);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:all .15s;flex-shrink:0}
+.act-btn:hover{transform:translateY(-1px);box-shadow:0 2px 6px rgba(0,0,0,.1)}
+.act-btn.edit:hover{border-color:var(--blue);color:var(--blue);background:#eff6ff}
+.act-btn.tog-on:hover{border-color:var(--amber);color:var(--amber);background:var(--amber-lt)}
+.act-btn.tog-off:hover{border-color:var(--green);color:var(--green);background:var(--green-lt)}
+.act-btn.del:hover{border-color:var(--red);color:var(--red);background:var(--red-lt)}
+
+/* ── Empty ── */
+.empty{padding:52px 24px;text-align:center;color:var(--dim)}
+.empty-icon{font-size:38px;margin-bottom:12px;opacity:.35}
+.empty p{font-size:14px;margin-bottom:8px}
+
+/* ── Modal overlay ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:200;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.overlay.show{display:flex}
+.modal{background:var(--white);border-radius:var(--r-xl);box-shadow:0 24px 60px rgba(0,0,0,.18);width:100%;overflow:hidden;animation:popIn .22s cubic-bezier(.34,1.3,.64,1)}
+.modal.wide{max-width:500px}
+.modal.sm{max-width:420px}
+@keyframes popIn{from{opacity:0;transform:scale(.96) translateY(6px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-hd{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border)}
+.modal-hd h3{font-size:15px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+.modal-hd h3 svg{color:var(--blue)}
+.modal-x{background:none;border:none;cursor:pointer;color:var(--dim);font-size:20px;line-height:1;padding:2px 4px;border-radius:4px;transition:all .15s}
+.modal-x:hover{color:var(--text);background:#f1f5f9}
+.modal-body{padding:22px;max-height:70vh;overflow-y:auto}
+.modal-ft{display:flex;justify-content:flex-end;gap:8px;padding:16px 22px;border-top:1px solid var(--border);background:#f8fafc}
+.del-overlay .modal-hd{background:var(--red-lt);border-bottom-color:#fecaca}
+.del-overlay .modal-hd h3{color:var(--red-dk)}
+.del-overlay .modal-hd h3 svg{color:var(--red)}
+
+/* ── Form ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:480px){.form-grid{grid-template-columns:1fr}}
+.field{margin-bottom:0}
+.field.full{grid-column:1/-1}
+.flbl{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);margin-bottom:6px}
+.flbl .req{color:var(--red);margin-left:2px}
+.finput,.fselect{width:100%;padding:10px 13px;border:1.5px solid var(--border2);border-radius:var(--r);font-size:13px;color:var(--text);background:var(--white);outline:none;font-family:'Inter',sans-serif;transition:border-color .2s,box-shadow .2s}
+.finput:focus,.fselect:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,86,219,.1)}
+.finput.err,.fselect.err{border-color:var(--red)}
+.fhint{font-size:11px;color:var(--dim);margin-top:4px}
+.ferr{font-size:11px;color:var(--red);margin-top:4px;display:none}
+.ferr.show{display:block}
+.fsec{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:14px 0 10px;border-bottom:1px solid var(--border);margin-bottom:14px;grid-column:1/-1}
+.toggle-row{display:flex;align-items:center;gap:10px;padding:10px 13px;background:#f8fafc;border:1.5px solid var(--border);border-radius:var(--r)}
+.toggle-sw{position:relative;width:40px;height:22px;flex-shrink:0}
+.toggle-sw input{opacity:0;width:0;height:0}
+.toggle-sl{position:absolute;inset:0;background:#cbd5e1;border-radius:20px;cursor:pointer;transition:.25s}
+.toggle-sl::before{content:'';position:absolute;width:16px;height:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.25s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle-sw input:checked + .toggle-sl{background:var(--green)}
+.toggle-sw input:checked + .toggle-sl::before{transform:translateX(18px)}
+.toggle-lbl{font-size:13px;font-weight:500;color:var(--text2)}
+
+/* ── Delete confirm ── */
+.del-box{background:var(--red-lt);border:1px solid #fecaca;border-radius:var(--r);padding:12px 14px;margin:10px 0}
+.del-box strong{display:block;font-size:14px;color:var(--red-dk);margin-bottom:2px}
+.del-box span{font-size:11px;color:#b91c1c}
+
+/* ── Detail view ── */
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border)}
+.detail-cell{background:var(--white);padding:12px 16px}
+.detail-cell.full{grid-column:1/-1}
+.dlbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:4px}
+.dval{font-size:13px;font-weight:500;color:var(--text);word-break:break-word}
+.dval.mono{font-family:'JetBrains Mono',monospace;font-size:12px}
+.dval.empty{color:var(--dim);font-style:italic;font-weight:400}
+
+/* ── Toast ── */
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:300;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{padding:11px 16px;border-radius:var(--r-lg);font-size:13px;font-weight:500;color:#fff;box-shadow:var(--sh-lg);pointer-events:auto;animation:toastIn .3s ease;display:flex;align-items:center;gap:8px;max-width:340px}
+.toast.success{background:#065f46;border:1px solid var(--green)}
+.toast.danger{background:#7f1d1d;border:1px solid var(--red)}
+.toast.warning{background:#78350f;border:1px solid var(--amber)}
+.toast.info{background:#1e3a8a;border:1px solid var(--blue)}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.anim{animation:slideUp .4s ease both}
+</style>
+</head>
+<body>
+
+<!-- ── Topbar ── -->
+<div class="topbar">
+  <div class="tb-brand">
+    <div class="tb-logo">⛪</div>
+    <div class="tb-name">VCMIS <span>Member Portal</span></div>
+  </div>
+  <div class="tb-nav">
+    <a href="#">Dashboard</a>
+    <a href="#">Members</a>
+    <a href="#" class="active">Settings</a>
+  </div>
+  <div class="tb-right">
+    <div class="tb-sep"></div>
+    <div class="tb-user">
+      <div class="tb-avatar">AD</div>
+      <span>Admin</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--dim)"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+  </div>
+</div>
+
+<!-- ── Page Header ── -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="breadcrumb">
+      <a href="#">Home</a><span class="sep">/</span>
+      <a href="#">Settings</a><span class="sep">/</span>
+      <span class="cur">Region</span>
+    </div>
+    <div class="hero-row">
+      <div>
+        <h1>Region Management</h1>
+        <p>Define and manage administrative regions. Each region is linked to a country and used to group territories.</p>
+        <div class="hero-meta">
+          <span class="hero-chip">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+            tbl_region
+          </span>
+          <span class="hero-chip">Linked: Country (CountryID)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Main content ── -->
+<div class="wrap">
+
+  <!-- Stat cards -->
+  <div class="stats anim">
+    <div class="scard blue"><div class="scard-lbl">Total Regions</div><div class="scard-val" id="stTotal">0</div></div>
+    <div class="scard green"><div class="scard-lbl">Active</div><div class="scard-val" id="stActive">0</div></div>
+    <div class="scard amber"><div class="scard-lbl">Inactive</div><div class="scard-val" id="stInactive">0</div></div>
+    <div class="scard slate"><div class="scard-lbl">Countries</div><div class="scard-val" id="stCountries">0</div></div>
+  </div>
+
+  <!-- Table card -->
+  <div class="card anim" style="animation-delay:.05s">
+    <div class="card-body">
+      <div class="toolbar">
+        <div class="card-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--blue)"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+          Region list
+        </div>
+        <div class="tb-controls">
+          <div class="search-wrap">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="srchBox" placeholder="Search ID or region name…" oninput="doFilter()">
+          </div>
+          <select class="fsel" id="filtStatus" onchange="doFilter()">
+            <option value="">All status</option>
+            <option value="1">Active</option>
+            <option value="0">Inactive</option>
+          </select>
+          <select class="fsel" id="filtCountry" onchange="doFilter()">
+            <option value="">All countries</option>
+          </select>
+          <button class="btn primary" onclick="openAdd()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add region
+          </button>
+          <button class="btn icon-only" title="Refresh" onclick="reloadTable()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-5"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:90px">Region ID</th>
+              <th>Region Name</th>
+              <th style="width:130px">Country</th>
+              <th style="width:80px">Status</th>
+              <th style="width:180px">Captured / Updated</th>
+              <th style="width:105px">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tBody"></tbody>
+        </table>
+      </div>
+      <div class="row-info" id="rowInfo"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     ADD / EDIT MODAL
+═══════════════════════════════════════════════ -->
+<div class="overlay" id="formOverlay">
+  <div class="modal wide">
+    <div class="modal-hd">
+      <h3>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        <span id="mTitleTxt">Add Region</span>
+      </h3>
+      <button class="modal-x" onclick="closeForm()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="mOrigID">
+      <div class="form-grid">
+
+        <div class="fsec">Region Identity</div>
+
+        <div class="field">
+          <label class="flbl">Region ID <span class="req">*</span></label>
+          <input type="text" class="finput" id="mRegionID" placeholder="e.g. 01" maxlength="2"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+          <div class="fhint">2-digit numeric code (01 – 99)</div>
+          <div class="ferr" id="eRegionID">Region ID is required.</div>
+        </div>
+
+        <div class="field">
+          <label class="flbl">Country <span class="req">*</span></label>
+          <select class="fselect" id="mCountryID">
+            <option value="">— Select country —</option>
+          </select>
+          <div class="ferr" id="eCountryID">Please select a country.</div>
+        </div>
+
+        <div class="field full">
+          <label class="flbl">Region Name <span class="req">*</span></label>
+          <input type="text" class="finput" id="mRegionName" placeholder="e.g. Greater Accra Region" maxlength="255">
+          <div class="ferr" id="eRegionName">Region name is required.</div>
+        </div>
+
+        <!-- Edit-only: Status -->
+        <div class="field full" id="mStatusRow" style="display:none">
+          <label class="flbl">Status</label>
+          <div class="toggle-row">
+            <label class="toggle-sw">
+              <input type="checkbox" id="mIsActive" checked onchange="updateToggleLbl()">
+              <span class="toggle-sl"></span>
+            </label>
+            <span class="toggle-lbl" id="mActiveLbl">Active</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn secondary" onclick="closeForm()">Cancel</button>
+      <button class="btn primary" onclick="saveRecord()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+        <span id="mSaveTxt">Save region</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     VIEW DETAIL MODAL
+═══════════════════════════════════════════════ -->
+<div class="overlay" id="viewOverlay">
+  <div class="modal wide">
+    <div class="modal-hd">
+      <h3>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        Region Details
+      </h3>
+      <button class="modal-x" onclick="closeView()">✕</button>
+    </div>
+    <div class="modal-body" style="padding:0">
+      <div class="detail-grid" id="detailGrid"></div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn secondary" onclick="closeView()">Close</button>
+      <button class="btn primary" onclick="editFromView()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Edit this record
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     DELETE CONFIRM MODAL
+═══════════════════════════════════════════════ -->
+<div class="overlay del-overlay" id="delOverlay">
+  <div class="modal sm">
+    <div class="modal-hd">
+      <h3>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        Delete Region
+      </h3>
+      <button class="modal-x" onclick="closeDel()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="dID">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:4px">You are about to permanently delete:</p>
+      <div class="del-box">
+        <strong id="dName">—</strong>
+        <span>This action cannot be undone. Territories linked to this region may be affected.</span>
+      </div>
+      <p style="font-size:12px;color:var(--muted);margin-top:10px">
+        💡 Consider <strong>deactivating</strong> the region instead to preserve linked records.
+      </p>
+    </div>
+    <div class="modal-ft">
+      <button class="btn secondary" onclick="closeDel()">Cancel</button>
+      <button class="btn danger" onclick="confirmDelete()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        Delete permanently
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   REFERENCE DATA — Countries (FK)
+   Swap with AJAX fetch in PHP implementation
+═══════════════════════════════════════════════════════════ */
+const COUNTRIES = [
+  { id: 'GH', name: 'Ghana' },
+  { id: 'NG', name: 'Nigeria' },
+  { id: 'GB', name: 'United Kingdom' },
+  { id: 'US', name: 'United States' },
+  { id: 'ZA', name: 'South Africa' },
+  { id: 'KE', name: 'Kenya' },
+  { id: 'CA', name: 'Canada' },
+  { id: 'DE', name: 'Germany' },
+];
+
+/* ═══════════════════════════════════════════════════════════
+   SAMPLE DATA  (matches updated tbl_region schema)
+   All 16 Ghana regions from the original dump + IsActive/audit cols
+═══════════════════════════════════════════════════════════ */
+let rows = [
+  { id:'01', name:'Ashanti Region',     countryID:'GH', active:1, capturedby:'admin', capturedDate:'25 Feb 2019', updatedAt:null,         updatedBy:null    },
+  { id:'02', name:'Ahafo Region',       countryID:'GH', active:1, capturedby:'admin', capturedDate:'25 Feb 2019', updatedAt:null,         updatedBy:null    },
+  { id:'03', name:'Central Region',     countryID:'GH', active:1, capturedby:'admin', capturedDate:'25 Feb 2019', updatedAt:null,         updatedBy:null    },
+  { id:'04', name:'Eastern Region',     countryID:'GH', active:1, capturedby:'admin', capturedDate:'25 Feb 2019', updatedAt:null,         updatedBy:null    },
+  { id:'05', name:'Greater Accra Region',countryID:'GH',active:1, capturedby:'admin', capturedDate:'25 Feb 2019', updatedAt:null,         updatedBy:null    },
+  { id:'06', name:'Northern Region',    countryID:'GH', active:1, capturedby:'admin', capturedDate:'25 Feb 2019', updatedAt:null,         updatedBy:null    },
+  { id:'07', name:'Upper East Region',  countryID:'GH', active:1, capturedby:'admin', capturedDate:'25 Feb 2019', updatedAt:null,         updatedBy:null    },
+  { id:'08', name:'Upper West Region',  countryID:'GH', active:1, capturedby:'admin', capturedDate:'25 Feb 2019', updatedAt:null,         updatedBy:null    },
+  { id:'09', name:'Volta Region',       countryID:'GH', active:1, capturedby:'admin', capturedDate:'25 Feb 2019', updatedAt:null,         updatedBy:null    },
+  { id:'10', name:'Western Region',     countryID:'GH', active:1, capturedby:'admin', capturedDate:'25 Feb 2019', updatedAt:null,         updatedBy:null    },
+  { id:'11', name:'North East Region',  countryID:'GH', active:1, capturedby:'admin', capturedDate:'25 Feb 2019', updatedAt:null,         updatedBy:null    },
+  { id:'12', name:'Savannah Region',    countryID:'GH', active:1, capturedby:'admin', capturedDate:'25 Feb 2019', updatedAt:null,         updatedBy:null    },
+  { id:'13', name:'Oti Region',         countryID:'GH', active:1, capturedby:'admin', capturedDate:'25 Feb 2019', updatedAt:null,         updatedBy:null    },
+  { id:'14', name:'Bono East Region',   countryID:'GH', active:1, capturedby:'admin', capturedDate:'25 Feb 2019', updatedAt:null,         updatedBy:null    },
+  { id:'15', name:'Western North',      countryID:'GH', active:1, capturedby:'admin', capturedDate:'25 Feb 2019', updatedAt:null,         updatedBy:null    },
+  { id:'16', name:'Bono Region',        countryID:'GH', active:1, capturedby:'admin', capturedDate:'25 Feb 2019', updatedAt:'01 Mar 2026',updatedBy:'admin' },
+];
+
+let viewingID = null;
+
+/* ── Lookup helpers ── */
+function getCountry(id){ return COUNTRIES.find(x => x.id === id) || { name: '—' }; }
+
+/* ═══════════════════════════════════════════════════════════
+   POPULATE DROPDOWNS
+═══════════════════════════════════════════════════════════ */
+function populateDropdowns(){
+  const mC = document.getElementById('mCountryID');
+  const fC = document.getElementById('filtCountry');
+  COUNTRIES.forEach(c => {
+    const opt = `<option value="${c.id}">${c.id} — ${c.name}</option>`;
+    mC.innerHTML += opt;
+    fC.innerHTML += opt;
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   STATS
+═══════════════════════════════════════════════════════════ */
+function updateStats(){
+  document.getElementById('stTotal').textContent    = rows.length;
+  document.getElementById('stActive').textContent   = rows.filter(r => r.active).length;
+  document.getElementById('stInactive').textContent = rows.filter(r => !r.active).length;
+  document.getElementById('stCountries').textContent = new Set(rows.map(r => r.countryID)).size;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RENDER TABLE
+═══════════════════════════════════════════════════════════ */
+function render(data){
+  const tb = document.getElementById('tBody');
+  const ri = document.getElementById('rowInfo');
+  ri.textContent = 'Showing ' + data.length + ' of ' + rows.length + ' records';
+
+  if(!data.length){
+    tb.innerHTML = `<tr><td colspan="6"><div class="empty"><div class="empty-icon">🗺️</div><p>No region records found.</p><button class="btn primary" style="margin-top:8px" onclick="openAdd()">Add first region</button></div></td></tr>`;
+    return;
+  }
+
+  tb.innerHTML = data.map(r => {
+    const country = getCountry(r.countryID);
+    const badge   = r.active
+      ? '<span class="badge active">Active</span>'
+      : '<span class="badge inactive">Inactive</span>';
+    const togCls   = r.active ? 'act-btn tog-on' : 'act-btn tog-off';
+    const togTitle = r.active ? 'Deactivate' : 'Reactivate';
+    const togSvg   = r.active
+      ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="5" width="22" height="14" rx="7"/><circle cx="16" cy="12" r="3" fill="currentColor"/></svg>`
+      : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="5" width="22" height="14" rx="7"/><circle cx="8" cy="12" r="3" fill="currentColor"/></svg>`;
+    const auditLine = r.updatedAt
+      ? `Updated ${r.updatedAt} by ${r.updatedBy}`
+      : `Captured ${r.capturedDate} by ${r.capturedby}`;
+    return `<tr id="row-${r.id}">
+      <td><span class="tid" style="cursor:pointer" onclick="openView('${r.id}')" title="View details">${r.id}</span></td>
+      <td><div class="tname">${r.name}</div></td>
+      <td>
+        <span class="tid country" title="${country.name}">${r.countryID}</span>
+        <span style="font-size:11px;color:var(--muted);margin-left:5px">${country.name}</span>
+      </td>
+      <td>${badge}</td>
+      <td style="font-size:11px;color:var(--dim)">${auditLine}</td>
+      <td>
+        <div class="act-btns">
+          <button class="act-btn" title="View" onclick="openView('${r.id}')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+          <button class="act-btn edit" title="Edit" onclick="openEdit('${r.id}')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="${togCls}" title="${togTitle}" onclick="doToggle('${r.id}')">
+            ${togSvg}
+          </button>
+          <button class="act-btn del" title="Delete" onclick="openDelete('${r.id}')">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   FILTER
+═══════════════════════════════════════════════════════════ */
+function doFilter(){
+  const q  = document.getElementById('srchBox').value.toLowerCase().trim();
+  const s  = document.getElementById('filtStatus').value;
+  const c  = document.getElementById('filtCountry').value;
+  const filtered = rows.filter(r => {
+    const mq = !q || r.id.includes(q) || r.name.toLowerCase().includes(q);
+    const ms = s === '' || String(r.active) === s;
+    const mc = c === '' || r.countryID === c;
+    return mq && ms && mc;
+  });
+  render(filtered);
+}
+
+function reloadTable(){
+  document.getElementById('srchBox').value      = '';
+  document.getElementById('filtStatus').value   = '';
+  document.getElementById('filtCountry').value  = '';
+  render(rows);
+  showToast('Table refreshed', 'info');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   HIGHLIGHT ROW
+═══════════════════════════════════════════════════════════ */
+function hlRow(id){
+  setTimeout(() => {
+    const r = document.getElementById('row-' + id);
+    if(!r) return;
+    r.classList.add('hl');
+    r.scrollIntoView({ behavior:'smooth', block:'nearest' });
+    setTimeout(() => r.classList.remove('hl'), 2500);
+  }, 250);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   FORM HELPERS
+═══════════════════════════════════════════════════════════ */
+function clearErrors(){
+  ['RegionID','RegionName','CountryID'].forEach(k => {
+    const e = document.getElementById('e' + k);
+    const f = document.getElementById('m' + k);
+    if(e) e.classList.remove('show');
+    if(f) f.classList.remove('err');
+  });
+}
+
+function validate(){
+  let ok = true;
+  const fields = [
+    { k:'RegionID',   msg:'Region ID is required (2-digit number).' },
+    { k:'CountryID',  msg:'Please select a country.' },
+    { k:'RegionName', msg:'Region name is required.' },
+  ];
+  fields.forEach(({ k, msg }) => {
+    const el    = document.getElementById('m' + k);
+    const errEl = document.getElementById('e' + k);
+    if(!el || !errEl) return;
+    if(!el.value.trim()){
+      el.classList.add('err');
+      errEl.textContent = msg;
+      errEl.classList.add('show');
+      ok = false;
+    }
+  });
+  return ok;
+}
+
+function updateToggleLbl(){
+  document.getElementById('mActiveLbl').textContent =
+    document.getElementById('mIsActive').checked ? 'Active' : 'Inactive';
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ADD MODAL
+═══════════════════════════════════════════════════════════ */
+function openAdd(){
+  document.getElementById('mOrigID').value          = '';
+  document.getElementById('mRegionID').value         = '';
+  document.getElementById('mRegionID').disabled      = false;
+  document.getElementById('mRegionName').value       = '';
+  document.getElementById('mCountryID').value        = '';
+  document.getElementById('mStatusRow').style.display = 'none';
+  document.getElementById('mTitleTxt').textContent   = 'Add Region';
+  document.getElementById('mSaveTxt').textContent    = 'Save region';
+  clearErrors();
+  document.getElementById('formOverlay').classList.add('show');
+  setTimeout(() => document.getElementById('mRegionID').focus(), 100);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   EDIT MODAL
+═══════════════════════════════════════════════════════════ */
+function openEdit(id){
+  const r = rows.find(x => x.id === id); if(!r) return;
+  document.getElementById('mOrigID').value           = id;
+  document.getElementById('mRegionID').value          = r.id;
+  document.getElementById('mRegionID').disabled       = true;
+  document.getElementById('mRegionName').value        = r.name;
+  document.getElementById('mCountryID').value         = r.countryID;
+  document.getElementById('mIsActive').checked        = !!r.active;
+  document.getElementById('mActiveLbl').textContent   = r.active ? 'Active' : 'Inactive';
+  document.getElementById('mStatusRow').style.display = 'block';
+  document.getElementById('mTitleTxt').textContent    = 'Edit Region — ' + id;
+  document.getElementById('mSaveTxt').textContent     = 'Update region';
+  clearErrors();
+  closeView();
+  document.getElementById('formOverlay').classList.add('show');
+  setTimeout(() => document.getElementById('mRegionName').focus(), 100);
+}
+
+function closeForm(){ document.getElementById('formOverlay').classList.remove('show'); }
+
+/* ═══════════════════════════════════════════════════════════
+   SAVE
+═══════════════════════════════════════════════════════════ */
+function saveRecord(){
+  if(!validate()) return;
+  const origID = document.getElementById('mOrigID').value;
+  const isEdit = !!origID;
+  const now    = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+  const newID  = document.getElementById('mRegionID').value.trim().padStart(2,'0');
+
+  if(!isEdit){
+    if(rows.find(x => x.id === newID)){
+      showToast('Region ID "' + newID + '" already exists.', 'warning');
+      return;
+    }
+    rows.push({
+      id:          newID,
+      name:        document.getElementById('mRegionName').value.trim(),
+      countryID:   document.getElementById('mCountryID').value,
+      active:      1,
+      capturedby:  'admin',
+      capturedDate: now,
+      updatedAt:   null,
+      updatedBy:   null,
+    });
+    closeForm(); doFilter(); updateStats();
+    showToast('"' + document.getElementById('mRegionName').value + '" added successfully.');
+    hlRow(newID);
+  } else {
+    const r    = rows.find(x => x.id === origID);
+    r.name     = document.getElementById('mRegionName').value.trim();
+    r.countryID = document.getElementById('mCountryID').value;
+    r.active   = document.getElementById('mIsActive').checked ? 1 : 0;
+    r.updatedAt = now;
+    r.updatedBy = 'admin';
+    closeForm(); doFilter(); updateStats();
+    showToast('"' + r.name + '" updated successfully.');
+    hlRow(origID);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   VIEW DETAIL MODAL
+═══════════════════════════════════════════════════════════ */
+function openView(id){
+  const r = rows.find(x => x.id === id); if(!r) return;
+  viewingID = id;
+  const country = getCountry(r.countryID);
+  const badge   = r.active
+    ? '<span class="badge active">Active</span>'
+    : '<span class="badge inactive">Inactive</span>';
+  document.getElementById('detailGrid').innerHTML = `
+    <div class="detail-cell"><div class="dlbl">Region ID</div><div class="dval mono">${r.id}</div></div>
+    <div class="detail-cell"><div class="dlbl">Status</div><div class="dval">${badge}</div></div>
+    <div class="detail-cell full"><div class="dlbl">Region Name</div><div class="dval">${r.name}</div></div>
+    <div class="detail-cell"><div class="dlbl">Country</div><div class="dval"><span class="tid country">${r.countryID}</span> <span style="font-size:12px;color:var(--muted)">${country.name}</span></div></div>
+    <div class="detail-cell"><div class="dlbl">Captured by</div><div class="dval">${r.capturedby} on ${r.capturedDate}</div></div>
+    <div class="detail-cell full"><div class="dlbl">Last updated</div><div class="dval">${r.updatedAt ? r.updatedAt + ' by ' + r.updatedBy : '<span class="empty">Never modified</span>'}</div></div>
+  `;
+  document.getElementById('viewOverlay').classList.add('show');
+}
+function closeView(){ document.getElementById('viewOverlay').classList.remove('show'); }
+function editFromView(){ closeView(); if(viewingID) openEdit(viewingID); }
+
+/* ═══════════════════════════════════════════════════════════
+   TOGGLE ACTIVE
+═══════════════════════════════════════════════════════════ */
+function doToggle(id){
+  const r = rows.find(x => x.id === id); if(!r) return;
+  r.active    = r.active ? 0 : 1;
+  r.updatedAt = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+  r.updatedBy = 'admin';
+  doFilter(); updateStats();
+  showToast('Region ' + (r.active ? 'reactivated' : 'deactivated') + ': ' + r.id, r.active ? 'success' : 'warning');
+  hlRow(id);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DELETE MODAL + CONFIRM
+═══════════════════════════════════════════════════════════ */
+function openDelete(id){
+  const r = rows.find(x => x.id === id); if(!r) return;
+  document.getElementById('dID').value         = id;
+  document.getElementById('dName').textContent = id + ' — ' + r.name;
+  document.getElementById('delOverlay').classList.add('show');
+}
+function closeDel(){ document.getElementById('delOverlay').classList.remove('show'); }
+function confirmDelete(){
+  const id   = document.getElementById('dID').value;
+  const r    = rows.find(x => x.id === id);
+  const name = r ? r.name : id;
+  rows = rows.filter(x => x.id !== id);
+  closeDel(); doFilter(); updateStats();
+  showToast('"' + name + '" permanently deleted.', 'danger');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════════════════ */
+function showToast(msg, type='success'){
+  const w = document.getElementById('toastWrap');
+  const icons = {
+    success: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>',
+    danger:  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+    warning: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>',
+    info:    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+  };
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.innerHTML = (icons[type] || '') + msg;
+  w.appendChild(t);
+  setTimeout(() => {
+    t.style.opacity = '0'; t.style.transform = 'translateY(8px)'; t.style.transition = '.3s';
+    setTimeout(() => t.remove(), 300);
+  }, 3200);
+}
+
+/* ── Backdrop click closes modals ── */
+document.getElementById('formOverlay').addEventListener('click', e => { if(e.target === document.getElementById('formOverlay')) closeForm(); });
+document.getElementById('delOverlay').addEventListener('click',  e => { if(e.target === document.getElementById('delOverlay'))  closeDel(); });
+document.getElementById('viewOverlay').addEventListener('click', e => { if(e.target === document.getElementById('viewOverlay')) closeView(); });
+
+/* ── Init ── */
+populateDropdowns();
+render(rows);
+updateStats();
+</script>
+</body>
+</html>
